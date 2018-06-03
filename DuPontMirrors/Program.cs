@@ -8,9 +8,27 @@ namespace DuPontMirrors
 		public static void Main (string[] args)
 		{
 			string path = PromptUserForFile();
-			Building building = new Building (path);
+			Building building;
+			LightBeam beam;
 
-			LightBeam beam = new LightBeam (building.InitialVector);
+			try {
+				building = new Building (path);
+			} catch (Exception) {
+				Console.WriteLine ("Error: unable to create board");
+				Console.WriteLine ("Press any key to continue");
+				Console.ReadKey ();
+				return;
+			}
+
+			try {
+				beam = new LightBeam (building.InitialVector);
+			} catch (Exception) {
+				Console.WriteLine ("Error: unable to create light source");
+				Console.WriteLine ("Press any key to continue");
+				Console.ReadKey ();
+				return;
+			}
+
 			while (building.Contains(beam) && !building.WasVisited(beam)) {
 				if (building.HasReflection (beam)) {
 					building.Reflect (beam);
