@@ -1,0 +1,5 @@
+/Users/mjbarsema/Projects/DuPontMirrors/DuPontMirrors/obj/x86/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
+/Users/mjbarsema/Projects/DuPontMirrors/DuPontMirrors/bin/Debug/DuPontMirrors.exe.mdb
+/Users/mjbarsema/Projects/DuPontMirrors/DuPontMirrors/bin/Debug/DuPontMirrors.exe
+/Users/mjbarsema/Projects/DuPontMirrors/DuPontMirrors/obj/x86/Debug/DuPontMirrors.exe
+/Users/mjbarsema/Projects/DuPontMirrors/DuPontMirrors/obj/x86/Debug/DuPontMirrors.exe.mdb

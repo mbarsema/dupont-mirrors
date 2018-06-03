@@ -2,8 +2,8 @@
 *~
 
 #build
-[Oo]bj/
-[Bb]in/
+#[Oo]bj/
+#[Bb]in/
 packages/
 TestResults/
 
