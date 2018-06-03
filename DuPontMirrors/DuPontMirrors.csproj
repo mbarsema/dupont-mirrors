@@ -40,7 +40,16 @@
     <Compile Include="Vector.cs" />
     <Compile Include="CardinalDirection.cs" />
     <Compile Include="Room.cs" />
-    <Compile Include="RoomType.cs" />
+    <Compile Include="Mirror\NorthEastFacingMirror.cs" />
+    <Compile Include="Mirror\NorthWestFacingMirror.cs" />
+    <Compile Include="Mirror\EastLeaningDoubleMirror.cs" />
+    <Compile Include="Mirror\Mirror.cs" />
+    <Compile Include="Mirror\SouthEastFacingMirror.cs" />
+    <Compile Include="Mirror\SouthWestFacingMirror.cs" />
+    <Compile Include="Mirror\WestLeaningDoubleMirror.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Mirror\" />
+  </ItemGroup>
 </Project>

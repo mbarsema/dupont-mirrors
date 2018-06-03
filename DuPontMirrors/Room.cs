@@ -6,76 +6,49 @@ namespace DuPontMirrors
 	public class Room
 	{
 		Dictionary<CardinalDirection, bool> isVisited;
-		Dictionary<CardinalDirection, bool> canReflect;
-		Dictionary<CardinalDirection, CardinalDirection> reflectedDirection;
-		RoomType roomType;
-		bool leansEast;
-		bool leansWest;
+		public int X { get; }
+		public int Y { get; }
+		Mirror mirror;
 
-		public Room (RoomType type, int startX, int startY)
+		public Room (Mirror theMirror, int x, int y)
 		{
-			roomType = type;
-			leansEast = false;
-			leansWest = false;
-
+			X = x;
+			Y = y;
+			mirror = theMirror;
 			isVisited = new Dictionary<CardinalDirection, bool> ();
 			isVisited [CardinalDirection.North] = false;
 			isVisited [CardinalDirection.South] = false;
 			isVisited [CardinalDirection.East] = false;
 			isVisited [CardinalDirection.West] = false;
-
-			canReflect = new Dictionary<CardinalDirection, bool> ();
-			canReflect [CardinalDirection.North] = false;
-			canReflect [CardinalDirection.South] = false;
-			canReflect [CardinalDirection.East] = false;
-			canReflect [CardinalDirection.West] = false;
-
-			reflectedDirection = new Dictionary<CardinalDirection, CardinalDirection> ();
-
-			if (type == RoomType.TwoWayMirrorLeansEast || type == RoomType.OneWayMirrorLeansEastReflectsNorth || type == RoomType.OneWayMirrorLeansEastReflectsSouth) {
-				leansEast = true;
-			}
-
-			if (type == RoomType.TwoWayMirrorLeansWest || type == RoomType.OneWayMirrorLeansWestReflectsNorth || type == RoomType.OneWayMirrorLeansWestReflectsSouth) {
-				leansWest = true;
-			}
-
-			if (type == RoomType.TwoWayMirrorLeansEast || type == RoomType.TwoWayMirrorLeansWest) {
-				canReflect [CardinalDirection.North] = true;
-				canReflect [CardinalDirection.South] = true;
-				canReflect [CardinalDirection.East] = true;
-				canReflect [CardinalDirection.West] = true;
-			} else {
-				if (roomType == RoomType.OneWayMirrorLeansEastReflectsSouth || roomType == RoomType.OneWayMirrorLeansWestReflectsSouth) {
-					canReflect [CardinalDirection.North] = true;
-				}
-
-				if (roomType == RoomType.OneWayMirrorLeansEastReflectsNorth || roomType == RoomType.OneWayMirrorLeansWestReflectsNorth) {
-					canReflect [CardinalDirection.South] = true;
-				}
-
-				if (roomType == RoomType.OneWayMirrorLeansWestReflectsNorth || roomType == RoomType.OneWayMirrorLeansEastReflectsSouth) {
-					canReflect [CardinalDirection.East] = true;
-				}
-
-				if (roomType == RoomType.OneWayMirrorLeansEastReflectsNorth || roomType == RoomType.OneWayMirrorLeansWestReflectsSouth) {
-					canReflect [CardinalDirection.West] = true;
-				}
-			}
-
-			if (leansEast) {
-				reflectedDirection [CardinalDirection.North] = CardinalDirection.East;
-				reflectedDirection [CardinalDirection.South] = CardinalDirection.West;
-				reflectedDirection [CardinalDirection.East] = CardinalDirection.North;
-				reflectedDirection [CardinalDirection.West] = CardinalDirection.South;
-			} else if (leansWest) {
-				reflectedDirection [CardinalDirection.North] = CardinalDirection.West;
-				reflectedDirection [CardinalDirection.South] = CardinalDirection.East;
-				reflectedDirection [CardinalDirection.East] = CardinalDirection.South;
-				reflectedDirection [CardinalDirection.West] = CardinalDirection.North;
-			}
 		}
 
+		/**
+		 * Works as a factory method for mirrors. Given the type,
+		 * returns the appropriate mirror.
+		 * 
+		 * @see Mirror for more information on the mirror class.
+		 * @see WestLeaningDoubleMirror for info on leaning double mirrors.
+		 * @see NorthEastFacingMirror for info on directional facing mirrors
+		 */
+		public static Mirror GetMirrorFromType(string type) {
+			switch (type) {
+			case "L": 
+				return new WestLeaningDoubleMirror ();
+			case "R": 
+				return new EastLeaningDoubleMirror ();
+			case "RL": 
+				return new NorthWestFacingMirror ();
+			case "RR":
+				return new SouthEastFacingMirror ();
+			case "LR":
+				return new NorthEastFacingMirror ();
+			case "LL":
+				return new SouthWestFacingMirror ();
+			default:
+				return null;
+			}
+		}
+			
 		public void Visit(CardinalDirection direction)
 		{
 			isVisited [direction] = true;
@@ -88,12 +61,12 @@ namespace DuPontMirrors
 
 		public bool HasReflection (CardinalDirection direction)
 		{
-			return canReflect [direction];
+			return mirror.HasReflection (direction);
 		}
 
 		public CardinalDirection GetReflectedDirection (CardinalDirection direction)
 		{
-			return reflectedDirection [direction];
+			return mirror.ReflectedDirection (direction);
 		}
 	}
 }
