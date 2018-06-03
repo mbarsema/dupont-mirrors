@@ -12,6 +12,13 @@ namespace DuPontMirrors
 		public int Width { get; private set; }
 		public Vector InitialVector { get; private set; }
 
+		/**
+		 * Constructor for Building.
+		 * Takes a string based file path and then derives the building in three phases.
+		 * Phase 1 defines the actual building.
+		 * Phase 2 defines the rooms in the building
+		 * Phase 3 defines the initial vector the light will travel.
+		 */
 		public Building (string path) {
 			string line;
 			StreamReader file = new System.IO.StreamReader(path);
@@ -24,55 +31,104 @@ namespace DuPontMirrors
 					continue;
 				}
 
-				if (phase == 0) {
-					SetBuildingSize (line);
-				}
-
-				if (phase == 1) {
-					CreateRoom (line);
-				}
-
-				if (phase == 2) {
-					SetInitialVector (line);
+				switch (phase) {
+					case 0:
+						SetBuildingSize (line);
+						break;
+					case 1:
+						CreateRoom (line);
+						break;
+					case 2:
+						SetInitialVector (line);
+						break;
 				}
 			}
 
 			file.Close();
 		}
 
-		private void SetBuildingSize (string line) {
-			string [] coordinates = line.Split (',');
-			Width = Convert.ToInt32 (coordinates [0]);
-			Height = Convert.ToInt32 (coordinates [1]);
-			rooms = new Room[Width, Height]; // TODO: This needs to have better memory management
+		/**
+		 * Constructor for building
+		 * Takes a width and height as parameters.
+		 */
+		public Building (int width, int height)
+		{
+			SetBuildingDimensions (width, height);
 		}
 
+		/**
+		 * Parses a line for the defined coordinates from phase 1.
+		 * Then converts those coordinates to an integer and then passes them
+		 * to creating building dimensions.
+		 */
+		private void SetBuildingSize (string line) {
+			string [] coordinates = line.Split (',');
+			SetBuildingDimensions (
+				Convert.ToInt32(coordinates[0]),
+				Convert.ToInt32(coordinates[1])
+			);
+		}
+
+		private void SetBuildingDimensions(int width, int height) {
+			Width = width;
+			Height = height;
+			rooms = new Room[width, height]; // TODO: This needs to have better memory management
+		}
+
+		/**
+		 * Creates a room given the format "1,2LR"
+		 */
 		private void CreateRoom(string line) {
 			string [] coordinates = line.Split(',');
-			int x = Convert.ToInt32 (coordinates [0]);
-			int y = ParseCoordinate(coordinates[1]);
+
+			// This pattern matches the format L, R, LL, LR, RL, RR
 			string mirrorType = ParseCoordinateMetaData(coordinates[1], "[L|R]{1,2}");
+			int x = Convert.ToInt32 (coordinates[0]);
+			int y = ParseCoordinate(coordinates[1]);
+
 			AddRoom (x, y, mirrorType);
 		}
 
+		/**
+		 * Sets the initial vector given the format "0,1V"
+		 */
 		private void SetInitialVector (string line) {
 			string[] coordinates = line.Split (',');
 			int x = Convert.ToInt32 (coordinates [0]);
 			int y = ParseCoordinate (coordinates [1]);
-			CardinalDirection direction = GetCardinalDirection(x, y, ParseCoordinateMetaData (coordinates [1], "[V|H]"));
+
+			// This pattern matches the format "V" (vertical) or "H" (horizontal)
+			CardinalDirection direction = GetInitialDirection(
+				x,
+				y, 
+				ParseCoordinateMetaData (coordinates [1], "[V|H]")
+			);
 
 			InitialVector = new Vector (x, y, direction);
 		}
 
+		/**
+		 * Parses a string in the format "12RR" where "RR" can be a form of meta-data and returns
+		 * only the coordinate (in this case 12).
+		 */
 		public static int ParseCoordinate(string coordinate) {
 			return Convert.ToInt32 (Regex.Match (coordinate, @"\d+").Value);
 		}
 
+		/**
+		 * Parses a string in the format "12RR" where "RR" is some form of meta-data and
+		 * returns only the meta-data (in this case "RR" which denotes a type of mirror).
+		 */
 		public static string ParseCoordinateMetaData(string coordinate, string pattern) {
 			return Regex.Match (coordinate.ToUpper (), pattern).Value;
 		}
 
-		public static CardinalDirection GetCardinalDirection(int x, int y, string stringlyDirection) {
+		/**
+		 * Converts a string and a pair of coordinates into the initial cardinal direction.
+		 * If we start at 0, we know that it's the bottom and we want to head north (can't go south)
+		 * or east (can't go west). If it's non-zero we want to go in the opposite direction.
+		 */
+		public static CardinalDirection GetInitialDirection(int x, int y, string stringlyDirection) {
 			CardinalDirection direction;
 
 			if (stringlyDirection == "V") {
@@ -85,47 +141,22 @@ namespace DuPontMirrors
 
 			return direction;
 		}
-			
-		public Building (int width, int height)
-		{
-			this.Width = width;
-			this.Height = height;
-			rooms = new Room[width, height];
-		}
 
-		public static RoomType ConvertStringToRoomType (string type) {
-			switch (type) {
-				case "L":
-					return RoomType.TwoWayMirrorLeansWest;
-				case "R":
-					return RoomType.TwoWayMirrorLeansEast;
-				case "RL":
-					return RoomType.OneWayMirrorLeansEastReflectsNorth;
-				case "RR":
-					return RoomType.OneWayMirrorLeansEastReflectsSouth;
-				case "LR":
-					return RoomType.OneWayMirrorLeansWestReflectsNorth;
-				case "LL":
-					return RoomType.OneWayMirrorLeansWestReflectsSouth;
-				default:
-					return RoomType.None;
-			}
-		}
 
 		public void AddRoom (int x, int y, string mirrorType)
 		{
-			RoomType type = ConvertStringToRoomType (mirrorType);
-			rooms[x, y] = new Room (type, x, y);
+			AddRoom(x, y, Room.GetMirrorFromType(mirrorType));
 		}
 
-		public void AddRoom (int x, int y, RoomType type)
+		public void AddRoom (int x, int y, Mirror mirror)
 		{
-			rooms [x, y] = new Room (type, x, y);
+			rooms [x, y] = new Room (mirror, x, y);
 		}
 
 		public bool Contains(LightBeam beam)
 		{
-			return beam.CurrentVector.X >= 0 && beam.CurrentVector.Y >= 0 && beam.CurrentVector.X < this.Width && beam.CurrentVector.Y < this.Height;
+			return beam.CurrentVector.X >= 0 && beam.CurrentVector.X < this.Width && 
+				beam.CurrentVector.Y >= 0  && beam.CurrentVector.Y < this.Height;
 		}
 
 		public Room GetCurrentRoom(Vector vector)
