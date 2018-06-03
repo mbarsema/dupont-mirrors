@@ -7,8 +7,7 @@ namespace DuPontMirrors
 	{
 		public static void Main (string[] args)
 		{
-			// string path = PromptUserForFile();
-			string path = "/Users/mjbarsema/Documents/Work Related/DuPont/test1.txt"; // TODO: Remove this for prompt.
+			string path = PromptUserForFile();
 			Building building = new Building (path);
 
 			LightBeam beam = new LightBeam (building.InitialVector);
